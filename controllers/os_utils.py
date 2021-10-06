@@ -2,4 +2,5 @@ import subprocess
 
 
 def get_available_devices():
-    return subprocess.check_output(["netsh", "wlan", "show", "network", "mode=Bssid"])
+    result = subprocess.getoutput(" sudo nmcli -f  SSID,BSSID,SIGNAL -m tabular -t dev wifi list")
+    return result

@@ -1,6 +1,6 @@
 class AccessPoint:
-    def __init__(self, point_id, name, signal):
-        self.point_id = point_id
+    def __init__(self, point_bssid, name, signal):
+        self.point_bssid = point_bssid
         self.name = name
         self.signal = signal
 
