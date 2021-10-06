@@ -5,4 +5,13 @@ class AccessPoint:
         self.signal = signal
 
     def __repr__(self):
-        return f" id:{self.id}\n name: {self.name}\n signal: {self.signal}"
+        return f"name: {self.name}\nid:{self.point_bssid}\nsignal: {self.signal}"
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __add__(self, other):
+        return str(self) + other
+
+    def __radd__(self, other):
+        return other + str(self)

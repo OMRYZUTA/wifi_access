@@ -1,4 +1,4 @@
-from ui.console_ui import run_mainMenu
+from ui.console_ui import ConsoleUI
 
 if __name__ == '__main__':
-    run_mainMenu()
+    ConsoleUI().run_main_menu()
