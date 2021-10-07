@@ -59,6 +59,7 @@ class ConsoleUI:
 
     def run_main_menu(self):
         while self.user_continue:
+            print(ConsoleUI.opening_message)
             for index, option in enumerate(ConsoleUI.main_menu_options, 1):
                 print(f"{index}. {option}")
             print(ConsoleUI.quit_message)
