@@ -1,14 +1,15 @@
+from collections import defaultdict
+
 from controllers.access_points_parser import AccessPointsParser
 from controllers.os_utils import get_available_devices
 
 
 class ConsoleUI:
     def __init__(self):
+        self.main_menu_choices_operator = None
         self.access_points = AccessPointsParser(get_available_devices()).access_points
-        self.main_menu_choices_operator = {'1': self.print_access_points,
-                                           '2': self.operate_connect_to_access_point,
-                                           '3': self.operate_open_google_in_browser,
-                                           'q': self.operate_quit}
+        self.user_continue = True
+        self.set_main_menu_operator()
 
     opening_message = "Hi there, please select_one of the options"
     quit_message = "If you want to quit, please insert q"
@@ -29,18 +30,27 @@ class ConsoleUI:
         pass
 
     def operate_quit(self):
-        return False
+        print("shutting down..")
+        self.user_continue = False
+
+    def operate_invalid_choice(self):
+        print("Invalid choice, please choose a number of one of the options")
 
     def operate_user_choice(self, user_choice):
         normalized_choice = user_choice.strip().lower()
         self.main_menu_choices_operator[normalized_choice]()
-        return True
 
     def run_main_menu(self):
-        user_continue = True
-        while user_continue:
+        while self.user_continue:
             for index, option in enumerate(ConsoleUI.main_menu_options, 1):
                 print(f"{index}. {option}")
             print(ConsoleUI.quit_message)
             user_choice = input()
-            user_continue = self.operate_user_choice(user_choice.strip())
+            self.operate_user_choice(user_choice.strip())
+
+    def set_main_menu_operator(self):
+        valid_options = {'1': self.print_access_points,
+                         '2': self.operate_connect_to_access_point,
+                         '3': self.operate_open_google_in_browser,
+                         'q': self.operate_quit}
+        self.main_menu_choices_operator = defaultdict(self.operate_invalid_choice(), valid_options)
