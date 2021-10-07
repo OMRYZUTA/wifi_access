@@ -1,4 +1,5 @@
 from collections import defaultdict
+from getpass import getpass
 
 from controllers.access_points_parser import AccessPointsParser
 from controllers.network_manager import NetworkManager
@@ -85,7 +86,7 @@ class ConsoleUI:
         access_point = self.access_points[result]
         if access_point:
             if access_point.security:
-                password = input("please insert password")
+                password = getpass()
                 result = self.network_manager.connect_access_point(access_point, password)
             else:
                 result = self.network_manager.connect_access_point(access_point)
