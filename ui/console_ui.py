@@ -1,11 +1,12 @@
 from collections import defaultdict
 
 from controllers.access_points_parser import AccessPointsParser
-from controllers.os_utils import get_available_devices, connect_access_point, open_default_browser
+from controllers.network_manager import NetworkManager
 
 
 class ConsoleUI:
     def __init__(self):
+        self.network_manager = NetworkManager()
         self.main_menu_choices_operator = None
         self.access_points = self.set_access_points()
         self.user_continue = True
@@ -15,7 +16,7 @@ class ConsoleUI:
     quit_message = "If you want to quit, please insert q"
     main_menu_options = ["Show available access points", "Connect to access point", "Open google in browser "]
     the_best_network = "The Best Network: "
-    choose_wifi_message = "Please enter the name of the network you want to connect"
+    choose_wifi_message = "Please enter the name of the network you want to connect or q to quit"
 
     def print_access_points(self):
         self.print_best_option()
@@ -34,12 +35,14 @@ class ConsoleUI:
         network_exist = False
         while not network_exist:
             result = input()
+            if result.lower() == 'q':
+                return
             if self.check_network_exist(result):
                 self.connect_to_existing_access_point(result)
                 network_exist = True
 
     def operate_open_google_in_browser(self):
-        open_default_browser()
+        self.network_manager.open_default_browser()
 
     def operate_quit(self):
         print("shutting down app..")
@@ -73,21 +76,22 @@ class ConsoleUI:
         return self.access_points[result] is not None
 
     def set_access_points(self):
-        access_points = AccessPointsParser(get_available_devices()).access_points
+        access_points = AccessPointsParser(self.network_manager.get_available_devices()).access_points
         access_point_dict = {x.ssid: x for x in access_points}
         return defaultdict(self.operate_invalid_choice, access_point_dict)
 
     def connect_to_existing_access_point(self, result):
         access_point = self.access_points[result]
-        if access_point.security != "":
-            password = input("please insert password")
-            result = connect_access_point(access_point, password)
-        else:
-            result = connect_access_point(access_point)
-        self.handle_result(result)
+        if access_point:
+            if access_point.security:
+                password = input("please insert password")
+                result = self.network_manager.connect_access_point(access_point, password)
+            else:
+                result = self.network_manager.connect_access_point(access_point)
+            self.handle_result(result)
 
     def handle_result(self, result):
         if result.find("successfully") != -1:
             print("successfully connected")
         else:
-            print("please try again")
+            print("something went wrong, please try again")

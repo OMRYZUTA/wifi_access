@@ -1,15 +1,16 @@
 from unittest import TestCase
 
 from controllers.access_points_parser import AccessPointsParser
-from controllers.os_utils import get_available_devices
+from controllers.network_manager import NetworkManager
 
 
 class Test(TestCase):
     def setUp(self):
-        self.access_points_parser = AccessPointsParser(get_available_devices())
+        self.network_manager = NetworkManager()
+        self.access_points_parser = AccessPointsParser(self.network_manager.get_available_devices())
 
     def test_get_available_networks(self):
-        self.assertTrue(len(get_available_devices()) > 1)
+        self.assertTrue(len(self.network_manager.get_available_devices()) > 1)
 
     def test_decode_devices_to_str(self):
         self.assertTrue(isinstance(self.access_points_parser.raw_string, str))
