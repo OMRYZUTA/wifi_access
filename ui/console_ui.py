@@ -1,13 +1,13 @@
 from collections import defaultdict
 
 from controllers.access_points_parser import AccessPointsParser
-from controllers.os_utils import get_available_devices
+from controllers.os_utils import get_available_devices, connect_access_point, open_default_browser
 
 
 class ConsoleUI:
     def __init__(self):
         self.main_menu_choices_operator = None
-        self.access_points = AccessPointsParser(get_available_devices()).access_points
+        self.access_points = self.set_access_points()
         self.user_continue = True
         self.set_main_menu_operator()
 
@@ -15,30 +15,44 @@ class ConsoleUI:
     quit_message = "If you want to quit, please insert q"
     main_menu_options = ["Show available access points", "Connect to access point", "Open google in browser "]
     the_best_network = "The Best Network: "
+    choose_wifi_message = "Please enter the name of the network you want to connect"
 
     def print_access_points(self):
-        print('*' * 8 + ConsoleUI.the_best_network + self.access_points[0] + '*' * 8)
-        for access_point in self.access_points[1:]:
-            print(access_point)
-            print()
+        self.print_best_option()
+        for index, access_point in enumerate(list(self.access_points.values())[1:], 2):
+            print(f"{index}. {access_point}\n")
         print()
 
+    def print_best_option(self):
+        print('*' * 8)
+        print(ConsoleUI.the_best_network)
+        print(f"1. {list(self.access_points.values())[0]}")
+        print('*' * 8)
+
     def operate_connect_to_access_point(self):
-        self.print_access_points()
+        print(ConsoleUI.choose_wifi_message)
+        network_exist = False
+        while not network_exist:
+            result = input()
+            if self.check_network_exist(result):
+                self.connect_to_existing_access_point(result)
+                network_exist = True
 
     def operate_open_google_in_browser(self):
-        pass
+        open_default_browser()
 
     def operate_quit(self):
-        print("shutting down..")
+        print("shutting down app..")
         self.user_continue = False
 
     def operate_invalid_choice(self):
-        print("Invalid choice, please choose a number of one of the options")
+        print("Invalid choice, please insert input as instructed")
 
     def operate_user_choice(self, user_choice):
         normalized_choice = user_choice.strip().lower()
-        self.main_menu_choices_operator[normalized_choice]()
+        option = self.main_menu_choices_operator[normalized_choice]
+        if option is not None:
+            option()
 
     def run_main_menu(self):
         while self.user_continue:
@@ -53,4 +67,27 @@ class ConsoleUI:
                          '2': self.operate_connect_to_access_point,
                          '3': self.operate_open_google_in_browser,
                          'q': self.operate_quit}
-        self.main_menu_choices_operator = defaultdict(self.operate_invalid_choice(), valid_options)
+        self.main_menu_choices_operator = defaultdict(self.operate_invalid_choice, valid_options)
+
+    def check_network_exist(self, result):
+        return self.access_points[result] is not None
+
+    def set_access_points(self):
+        access_points = AccessPointsParser(get_available_devices()).access_points
+        access_point_dict = {x.ssid: x for x in access_points}
+        return defaultdict(self.operate_invalid_choice, access_point_dict)
+
+    def connect_to_existing_access_point(self, result):
+        access_point = self.access_points[result]
+        if access_point.security != "":
+            password = input("please insert password")
+            result = connect_access_point(access_point, password)
+        else:
+            result = connect_access_point(access_point)
+        self.handle_result(result)
+
+    def handle_result(self, result):
+        if result.find("successfully") != -1:
+            print("successfully connected")
+        else:
+            print("please try again")

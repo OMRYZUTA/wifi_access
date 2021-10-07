@@ -10,31 +10,39 @@ class AccessPointsParser:
         return self.split_to_strings_of_points(self.raw_string)
 
     def split_to_strings_of_points(self, main_string):
-        points_strings = main_string.split("\n")
-        return self.parse_points_strings(points_strings)
+        points_strings = main_string.split("SSID")
+        return self.parse_points_strings(points_strings[1:])
 
     def parse_points_strings(self, points_strings):
         access_points = []
         for point_string in points_strings:
-            point_id, point_name, point_signal = self.parse_point_string(point_string)
-            access_points.append(AccessPoint(point_id, point_name, point_signal))
+            ssid, signal, security = self.parse_point_string(point_string)
+            access_points.append(AccessPoint(ssid, signal, security))
         return access_points
 
     def parse_point_string(self, point_string):
-        point_id = self.parse_point_id_from_line(point_string)
-        name = self.parse_name_from_line(point_string)
-        signal = self.parse_signal_from_line(point_string)
-        return point_id, name, signal
+        ssid = self.parse_ssid(point_string)
+        signal = self.parse_signal(point_string)
+        security = self.parse_security(point_string)
+        return ssid, signal, security
 
-    def parse_name_from_line(self, line):
-        name_end_index = line.find(":")
-        return line[:name_end_index].strip()
+    def parse_signal(self, line):
+        signal_start_index = self.find_index_after_target(line, "SIGNAL:")
+        signal_end_index = self.find_end_index(line, signal_start_index)
+        return line[signal_start_index:signal_end_index]
 
-    def parse_signal_from_line(self, line):
-        signal_index = line.rfind(":") + 1
-        return line[signal_index:].strip()
+    def parse_ssid(self, line):
+        ssid_start_index = self.find_index_after_target(line, ":")
+        ssid_end_index = self.find_end_index(line, ssid_start_index)
+        return line[ssid_start_index:ssid_end_index]
 
-    def parse_point_id_from_line(self, line):
-        name_end_index = line.find(":") + 1
-        signal_index = line.rfind(":")
-        return line[name_end_index:signal_index]
+    def parse_security(self, line):
+        security_start_index = self.find_index_after_target(line, "SECURITY:")
+        security_end_index = self.find_end_index(line, security_start_index)
+        return line[security_start_index:security_end_index]
+
+    def find_end_index(self, line, start_index):
+        return line.find("\n", start_index)
+
+    def find_index_after_target(self, line, target):
+        return line.find(target) + len(target)
